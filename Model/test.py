@@ -84,15 +84,24 @@ augmentation_transform = v2.Compose([
     v2.Compose([v2.ToImage(), v2.ToDtype(torch.float32, scale=True)]), #loading image to tensor
     #v2.Normalize()
 ])
+def threshold_mask(mask, threshold=0.5):
+    mask = mask.float() / 255.0 
+    mask = (mask > threshold).float()
+    return mask
+
+# Custom transform for masks
+mask_transform = v2.Compose([
+    v2.Lambda(lambda mask: threshold_mask(mask))
+])
 
 
 print("Getting the images")
-training_dataset = CustomDataset.CustomImageDataset(training_path + "\\images", training_path + "\\masks", transform=augmentation_transform)
-test_dataset = CustomDataset.CustomImageDataset(test_path + "\\images", test_path + "\\masks", transform=augmentation_transform)
+training_dataset = CustomDataset.CustomImageDataset(training_path + "\\images", training_path + "\\masks", transform=augmentation_transform,mask_transform=mask_transform)
+test_dataset = CustomDataset.CustomImageDataset(test_path + "\\images", test_path + "\\masks", transform=augmentation_transform,mask_transform=mask_transform)
 
 print("Converting images to tensors")
-train_dataloader = DataLoader(training_dataset, batch_size=64, shuffle=True)
-test_dataloader = DataLoader(test_dataset , batch_size=64, shuffle=True)
+train_dataloader = DataLoader(training_dataset, batch_size=8, shuffle=True)
+test_dataloader = DataLoader(test_dataset , batch_size=8, shuffle=True)
 print("Loading images to gpu tensors")
 for train_batch, mask_batch in train_dataloader:
     train_batch, mask_batch = train_batch.to(device), mask_batch.to(device)
@@ -100,7 +109,7 @@ for train_batch, mask_batch in train_dataloader:
 for train_batch, mask_batch in test_dataloader:
     train_batch, mask_batch = train_batch.to(device), mask_batch.to(device)
 
-channels = 4
+channels = 3
 classes = 2
 model = UNet(channels, classes)
 input_data = torch.randn(1, channels, 256, 256)
@@ -108,10 +117,10 @@ output = model(input_data)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
-
+print()
 model.to(device)
 
-num_epochs = 10
+num_epochs = 1
 
 #training
 for epoch in range(num_epochs):
@@ -125,7 +134,7 @@ for epoch in range(num_epochs):
         
         outputs = model(images)
         
-        loss = criterion(outputs, masks)
+        loss = criterion(outputs, masks.squeeze(1).long())
         loss.backward()
         optimizer.step()
         
@@ -140,6 +149,7 @@ with torch.no_grad():
         images, masks = images.to(device), masks.to(device)
         
         outputs = model(images)
+        masks = masks.long()
         
         test_loss += criterion(outputs, masks).item()
 
