@@ -1,3 +1,4 @@
+from PIL import Image
 import torch
 from torch.utils.data import DataLoader
 from torchvision.transforms import ToTensor, ToPILImage
@@ -76,38 +77,45 @@ arrange_data(training_path,updated_training_folders)
 #data augmentation
 augmentation_transform = v2.Compose([
     v2.ToPILImage(),
-    v2.RandomHorizontalFlip(p=0.5),
-    v2.RandomVerticalFlip(p=0.25),
-    v2.RandomRotation(degrees=45),
+    #v2.RandomHorizontalFlip(p=0.5),
+    #v2.RandomVerticalFlip(p=0.25),
+    #v2.RandomRotation(degrees=45),
     v2.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2),
-    v2.RandomResizedCrop(224, scale=(0.8, 1.0)),
+    #v2.RandomResizedCrop(224, scale=(0.8, 1.0)),
     v2.Compose([v2.ToImage(), v2.ToDtype(torch.float32, scale=True)]), #loading image to tensor
     #v2.Normalize()
 ])
-def threshold_mask(mask, threshold=0.5):
-    mask = mask.float() / 255.0 
-    mask = (mask > threshold).float()
-    return mask
 
-# Custom transform for masks
-mask_transform = v2.Compose([
-    v2.Lambda(lambda mask: threshold_mask(mask))
-])
-
+#custom transform for masks
 
 print("Getting the images")
-training_dataset = CustomDataset.CustomImageDataset(training_path + "\\images", training_path + "\\masks", transform=augmentation_transform,mask_transform=mask_transform)
-test_dataset = CustomDataset.CustomImageDataset(test_path + "\\images", test_path + "\\masks", transform=augmentation_transform,mask_transform=mask_transform)
+training_dataset = CustomDataset.CustomImageDataset(training_path + "\\images", training_path + "\\masks", transform=augmentation_transform)
+test_dataset = CustomDataset.CustomImageDataset(test_path + "\\images", test_path + "\\masks", transform=augmentation_transform)
 
 print("Converting images to tensors")
-train_dataloader = DataLoader(training_dataset, batch_size=8, shuffle=True)
-test_dataloader = DataLoader(test_dataset , batch_size=8, shuffle=True)
-print("Loading images to gpu tensors")
-for train_batch, mask_batch in train_dataloader:
-    train_batch, mask_batch = train_batch.to(device), mask_batch.to(device)
+train_dataloader = DataLoader(training_dataset, batch_size=4, shuffle=True)
+test_dataloader = DataLoader(test_dataset , batch_size=4, shuffle=True)
 
-for train_batch, mask_batch in test_dataloader:
-    train_batch, mask_batch = train_batch.to(device), mask_batch.to(device)
+num_images_to_display = 10
+fig, axs = plt.subplots(num_images_to_display, 2, figsize=(10, 20))
+for i in range(num_images_to_display):
+    train_image, mask_image = training_dataset[i]
+    train_image = train_image.permute(1, 2, 0).numpy()
+
+    axs[i, 0].imshow(train_image)
+    axs[i, 0].set_title('Train Image')
+    axs[i, 0].axis('off')
+
+    axs[i, 1].imshow(mask_image, cmap='gray')
+    axs[i, 1].set_title('Mask Image')
+    axs[i, 1].axis('off')
+
+plt.tight_layout()
+plt.show()
+
+# print("Loading images to gpu tensors")
+# for train_batch, mask_batch in train_dataloader:
+#     train_batch, mask_batch = train_batch.to(device), mask_batch.to(device)
 
 channels = 3
 classes = 2
@@ -123,34 +131,88 @@ model.to(device)
 num_epochs = 1
 
 #training
+train_losses = []
+accuracies = []
 for epoch in range(num_epochs):
     model.train()
     running_loss = 0.0
-    
+    correct_predictions = 0
+    total_samples = 0
+
     for images, masks in tqdm(train_dataloader, desc=f'Epoch {epoch + 1}/{num_epochs}', leave=False):
         images, masks = images.to(device), masks.to(device)
-        
+        # Convert binary mask to class indices
+        class_indices = (masks.squeeze(1) > 0).long()  # Assuming masks has shape (batch_size, 1, height, width)
+
+        # Ensure class indices tensor has the correct data type
+        class_indices = class_indices.to(torch.long)  # Convert to long (int64) data type if not already
+
+        print(images.dtype)
+        print(masks.dtype)
         optimizer.zero_grad()
-        
         outputs = model(images)
-        
-        loss = criterion(outputs, masks.squeeze(1).long())
+        loss = criterion(outputs, class_indices)
         loss.backward()
         optimizer.step()
-        
         running_loss += loss.item()
-    
-    print(f"Epoch {epoch + 1} Loss: {running_loss / len(train_dataloader)}")
+
+        _, predicted = torch.max(outputs, 1)
+        correct_predictions += (predicted == masks.squeeze(1)).sum().item()
+        total_samples += 1
+
+    epoch_loss = running_loss / len(train_dataloader)
+    epoch_accuracy = correct_predictions / total_samples
+
+    train_losses.append(epoch_loss)
+    accuracies.append(epoch_accuracy)
+
+    print(f"Epoch {epoch + 1} Loss: {epoch_loss:.4f}, Accuracy: {epoch_accuracy * 100:.2f}%")
+
+#creating graphs
+plt.figure(figsize=(10, 5))
+
+plt.subplot(1, 2, 1)
+plt.plot(train_losses, label='Train Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Training Loss')
+plt.legend()
+
+plt.subplot(1, 2, 2)
+plt.plot(accuracies, label='Accuracy', color='green')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.title('Accuracy')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
 
 model.eval()
-test_loss = 0.0
 with torch.no_grad():
-    for images, masks in tqdm(test_dataloader, desc='Testing', leave=False):
+    counter = 0
+    for images, masks in test_dataloader:
         images, masks = images.to(device), masks.to(device)
         
         outputs = model(images)
-        masks = masks.long()
-        
-        test_loss += criterion(outputs, masks).item()
+        preds = torch.argmax(outputs, dim=1).cpu().numpy()
 
-print(f"Average Test Loss: {test_loss / len(test_dataloader)}")
+        images_np = images.cpu().numpy()
+        masks_np = masks.cpu().numpy()
+        
+        plt.figure(figsize=(12, 4))
+        plt.subplot(1, 3, 1)
+        plt.imshow(np.transpose(images_np[0], (1, 2, 0))) 
+        plt.title("Original Image")
+        
+        plt.subplot(1, 3, 2)
+        plt.imshow(masks_np[0], cmap='gray')
+        plt.title("Ground Truth Mask")
+        
+        plt.subplot(1, 3, 3)
+        plt.imshow(preds[0], cmap='gray')
+        plt.title("Predicted Mask")
+        
+        plt.show()
+        counter += 1
+        if counter == 10: break
