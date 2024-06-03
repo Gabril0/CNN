@@ -49,13 +49,18 @@ class ConvOut(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=1)
-    def forward(self,x):
-        return self.conv(x)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = self.sigmoid(x) 
+        return x
+
     
 class UNet(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
-        self.inc = ConvBlock(in_channels, 64)  # in_channels is now 4
+        self.inc = ConvBlock(in_channels, 64)
         self.down1 = DownBlock(64, 128)
         self.down2 = DownBlock(128, 256)
         self.down3 = DownBlock(256, 512)
