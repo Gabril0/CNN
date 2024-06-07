@@ -42,5 +42,3 @@ class CustomImageDataset(Dataset):
         thresholded_mask_tensor = torch.from_numpy(thresholded_mask).unsqueeze(0) 
 
         return train_img, thresholded_mask_tensor
-
-        #return train_img, thresholded_mask
