@@ -35,5 +35,12 @@ class CustomImageDataset(Dataset):
 
         train_img = train_img.float() / 255.0
         thresholded_mask = thresholded_mask.float() / 255.0
+        
+        if not isinstance(thresholded_mask, np.ndarray):
+            thresholded_mask = np.array(thresholded_mask)
 
-        return train_img, thresholded_mask
+        thresholded_mask_tensor = torch.from_numpy(thresholded_mask).unsqueeze(0) 
+
+        return train_img, thresholded_mask_tensor
+
+        #return train_img, thresholded_mask

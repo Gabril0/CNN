@@ -30,32 +30,32 @@ print(f"Using {device} device")
 #getting path references
 testing_folders = [
     r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009009\01-roi",
-    #r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009010x1000902\01-roi",
-    #r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009011\01-roi",
-    #r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009014\01-roi",
-    #r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009016x1000903\01-roi",
-    #r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009023\01-roi",
-    #r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009009\02-non_roi",
-    #r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009010x1000902\02-non_roi",
-    #r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009011\02-non_roi",
-    #r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009014\02-non_roi",
-    #r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009016x1000903\02-non_roi",
-    #r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009023\02-non_roi"
+    r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009010x1000902\01-roi",
+    r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009011\01-roi",
+    r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009014\01-roi",
+    r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009016x1000903\01-roi",
+    r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009023\01-roi",
+    r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009009\02-non_roi",
+    r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009010x1000902\02-non_roi",
+    r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009011\02-non_roi",
+    r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009014\02-non_roi",
+    r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009016x1000903\02-non_roi",
+    r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\testing\tumor\patch\640x640\1009023\02-non_roi"
 ]
 
 training_folders = [
     r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009009\01-roi",
-    #r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009010x1000902\01-roi",
-    #r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009011\01-roi",
-    #r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009014\01-roi",
-    #r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009016x1000903\01-roi",
-    #r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009023\01-roi",
-    #r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009009\02-non_roi",
-    #r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009010x1000902\02-non_roi",
-    #r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009011\02-non_roi",
-    #r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009014\02-non_roi",
-    #r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009016x1000903\02-non_roi",
-    #r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009023\02-non_roi"
+    r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009010x1000902\01-roi",
+    r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009011\01-roi",
+    r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009014\01-roi",
+    r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009016x1000903\01-roi",
+    r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009023\01-roi",
+    r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009009\02-non_roi",
+    r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009010x1000902\02-non_roi",
+    r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009011\02-non_roi",
+    r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009014\02-non_roi",
+    r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009016x1000903\02-non_roi",
+    r"D:\Estudos\IC\DataSets\H&E-stained oral squamous cell carcinoma histological images dataset\H&E-stained oral squamous cell carcinoma histological images dataset\training\tumor\patch\640x640\1009023\02-non_roi"
 ]
 
 updated_training_folders = []
@@ -82,16 +82,16 @@ from albumentations.pytorch import ToTensorV2
 
 augmentation_transform = A.Compose([
     #A.ToPIL(),
-    # A.HorizontalFlip(p=0.5),
-    # A.VerticalFlip(p=0.25),
-    # A.Rotate(limit=45),
+    A.HorizontalFlip(p=0.5),
+    A.VerticalFlip(p=0.25),
+    A.Rotate(limit=45),
     A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2),
-    # A.RandomResizedCrop(224, scale=(0.8, 1.0)),
+    A.RandomResizedCrop(224, 224, scale=(0.8, 1.0)),
     ToTensorV2()  # loading image to tensor and normalization
 ])
 
 #custom transform for masks
-
+print("###############ATENCAO###### FAZER O OVERLAY DE IMAGEM E MASCARAS, REFATORAR CÓDIGO ## FAZER UM TXT PARA O PATH DE IMAGENS, E FAZER UMA VERIFICAÇÃO TODO TREINAMENTO PARA OS PATHS INCLUSOS, OU SEJA, CRIAR OUTRO TXT E COMPARAR COM O ATUAL, DELETAR CASO FOR DIFERENTE E CRIAR UMA NOVA APPENDED FOLDER")
 print("Getting the images")
 training_dataset = CustomDataset.CustomImageDataset(training_path + "\\images", training_path + "\\masks", transform=augmentation_transform)
 test_dataset = CustomDataset.CustomImageDataset(test_path + "\\images", test_path + "\\masks", transform=augmentation_transform)
@@ -134,7 +134,7 @@ optimizer = optim.Adam(model.parameters(), lr=0.001)
 print()
 model.to(device)
 
-num_epochs = 1
+num_epochs = 20
 
 #training
 train_losses = []
@@ -147,21 +147,21 @@ for epoch in range(num_epochs):
 
     for images, masks in tqdm(train_dataloader, desc=f'Epoch {epoch + 1}/{num_epochs}', leave=False):
         images, masks = images.to(device), masks.to(device)
+        # print("original mask shape:", masks.shape)
+        #class_indices = masks.unsqueeze(1).float().to(device)
 
-        class_indices = masks.unsqueeze(1).float().to(device)
-
-        print(images.dtype)
-        print(masks.dtype)
+        # print(images.dtype)
+        # print(masks.dtype)
         optimizer.zero_grad()
         outputs = model(images)
-        print(outputs.shape)
-        print(outputs.min(), outputs.max())
+        # print(outputs.shape)
+        # print(outputs.min(), outputs.max())
 
-        print("Resized Target Mask Shape:", class_indices.shape)
-        print("Resized Target Mask Data Type:", class_indices.dtype)
-        print("Model Output Shape:", outputs.shape)
-        
-        loss = F.binary_cross_entropy(outputs, class_indices)
+        #print("Resized Target Mask Shape:", class_indices.shape)
+        #print("Resized Target Mask Data Type:", class_indices.dtype)
+        #print("Model Output Shape:", outputs.shape)
+        loss = F.binary_cross_entropy(outputs, masks)
+        #loss = F.binary_cross_entropy(outputs, class_indices)
         #loss = criterion(outputs, class_indices)
         optimizer.zero_grad()
         loss.backward()
@@ -202,51 +202,62 @@ plt.tight_layout()
 plt.show()
 import torch.nn.functional as F
 
-model.eval()
 with torch.no_grad():
     counter = 0
     for images, masks in test_dataloader:
         images, masks = images.to(device), masks.to(device)
-        
-        outputs = model(images)
-        
-        probs = F.softmax(outputs, dim=1)
-        
-        print(f'Outputs shape: {outputs.shape}')
-        print(f'Probabilities shape: {probs.shape}')
-        
-        preds = torch.argmax(outputs, dim=1).cpu().numpy()
-        
-        unique_preds = np.unique(preds)
-        print(f'Unique values in predictions: {unique_preds}')
-        
-        print(f'Outputs sample: {outputs[0, :, 0, 0]}')
-        print(f'Probabilities sample: {probs[0, :, 0, 0]}')
-        
-        images_np = images.cpu().numpy()
-        masks_np = masks.cpu().numpy()
-        
-        plt.figure(figsize=(16, 4))
-        
-        plt.subplot(1, 4, 1)
-        plt.imshow(np.transpose(images_np[0], (1, 2, 0))) 
-        plt.title("Original Image")
-        
-        plt.subplot(1, 4, 2)
-        plt.imshow(masks_np[0].squeeze(), cmap='gray')
-        plt.title("Ground Truth Mask")
-        
-        # plt.subplot(1, 4, 3)
-        # plt.imshow(probs[0].cpu(), cmap='gray')
-        # plt.title("Probability Map")
-        
-        plt.subplot(1, 4, 4)
-        plt.imshow(preds[0], cmap='gray')
-        plt.title("Predicted Mask")
-        
-        plt.show()
-        
-        counter += 1
-        if counter == 10: break
 
+        # Normalize the input images
+        images_normalized = images  # Assuming images are already normalized, modify if needed
+
+        outputs = model(images_normalized)
+        probs = outputs
+        #probs = F.softmax(outputs, dim=1)
+        
+
+        # Convert tensors to numpy arrays for visualization
+        images_np = images_normalized.cpu().numpy()
+        masks_np = masks.cpu().numpy()
+        probs_np = probs.cpu().numpy()
+
+        threshold = 0.5
+        preds_np = (probs_np > threshold).astype(np.uint8)
+        preds_np_squeezed = np.squeeze(preds_np, axis=1) 
+
+
+        # print("Shapes:")
+        # print("images_np:", images_np.shape)
+        # print("masks_np:", masks_np.shape)
+        # print("probs_np:", probs_np.shape)
+        # print("preds_np:", preds_np.shape)
+
+        # print("Value Ranges:")
+        # print("images_np - min:", images_np.min(), "max:", images_np.max())
+        # print("masks_np - min:", masks_np.min(), "max:", masks_np.max())
+        # print("probs_np - min:", probs_np.min(), "max:", probs_np.max())
+        # print("preds_np - min:", preds_np.min(), "max:", preds_np.max())
+
+        plt.figure(figsize=(16, 4))
+
+        plt.subplot(1, 4, 1)
+        plt.imshow(images_np[0].transpose((1, 2, 0)))  # Transpose to (H, W, C) for RGB image
+        plt.title("Original Image")
+
+        plt.subplot(1, 4, 2)
+        plt.imshow(masks_np[0, 0], cmap='gray')  # Assuming single-channel mask
+        plt.title("Ground Truth Mask")
+
+        plt.subplot(1, 4, 3)
+        plt.imshow(probs_np[0, 0], cmap='gray')  # Assuming probabilities for class 0
+        plt.title("Probability Map")
+
+        plt.subplot(1, 4, 4)
+        plt.imshow(preds_np_squeezed[0], cmap='gray')
+        plt.title("Predicted Mask")
+
+        plt.show()
+
+        counter += 1
+        if counter == 10:
+            break
 
