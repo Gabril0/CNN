@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 class ConvBlock(nn.Module):
     def __init__(self, in_channels, out_channels, temp_channels=None):
@@ -17,7 +18,6 @@ class ConvBlock(nn.Module):
     def forward(self, x):
         return self.conv(x)
 
-        
 class DownBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
@@ -25,7 +25,7 @@ class DownBlock(nn.Module):
             nn.MaxPool2d(2),
             ConvBlock(in_channels, out_channels)
         )
-    def forward(self,x):
+    def forward(self, x):
         return self.down(x)
 
 class UpBlock(nn.Module):
@@ -33,30 +33,52 @@ class UpBlock(nn.Module):
         super().__init__()
         self.up = nn.ConvTranspose2d(in_channels, in_channels // 2, kernel_size=2, stride=2)
         self.conv = ConvBlock(in_channels, out_channels)
-        
     def forward(self, x, skip):
         x = self.up(x)
         diffY = skip.size()[2] - x.size()[2]
         diffX = skip.size()[3] - x.size()[3]
-        x = nn.functional.pad(x, [diffX // 2, diffX - diffX // 2, 
-                                  diffY // 2, diffY - diffY // 2])
+        x = F.pad(x, [diffX // 2, diffX - diffX // 2, diffY // 2, diffY - diffY // 2])
         x = torch.cat([skip, x], dim=1)
         x = self.conv(x)
         return x
 
-    
 class ConvOut(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=1)
         self.sigmoid = nn.Sigmoid()
-
     def forward(self, x):
         x = self.conv(x)
-        x = self.sigmoid(x) 
+        x = self.sigmoid(x)
         return x
 
-    
+class Attention(nn.Module):
+    def __init__(self, in_channels, gating_channels, inter_channels=None):
+        super().__init__()
+        if inter_channels is None:
+            inter_channels = in_channels // 2
+        self.W = nn.Sequential(
+            nn.Conv2d(in_channels, inter_channels, kernel_size=1),
+            nn.BatchNorm2d(inter_channels)
+        )
+        self.theta = nn.Conv2d(gating_channels, inter_channels, kernel_size=1, stride=2, padding=0, bias=False)
+        self.phi = nn.Conv2d(in_channels, inter_channels, kernel_size=1, stride=2, padding=0, bias=False)
+        self.psi = nn.Sequential(
+            nn.Conv2d(inter_channels, 1, kernel_size=1),
+            nn.BatchNorm2d(1),
+            nn.Sigmoid()
+        )
+        self.relu = nn.ReLU(inplace=True)
+    def forward(self, x, g):
+        theta_x = self.theta(x)
+        phi_g = self.phi(g)
+        f = self.relu(theta_x + phi_g)
+        psi_f = self.psi(f)
+        psi_f = F.interpolate(psi_f, scale_factor=2, mode='bilinear', align_corners=True)
+        y = psi_f.expand_as(x) * x
+        W_y = self.W(y)
+        return W_y
+
 class UNet(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
@@ -83,4 +105,3 @@ class UNet(nn.Module):
         x = self.up4(x, x1)
         x = self.out(x)
         return x
-
