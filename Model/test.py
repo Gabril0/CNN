@@ -79,10 +79,12 @@ arrange_data(training_path,updated_training_folders)
 #data augmentation
 augmentation_transform = A.Compose([
     #A.ToPIL(),
+    A.Resize(width = 256, height = 256, p=1.0),
     A.HorizontalFlip(p=0.5),
     A.VerticalFlip(p=0.25),
-    A.Rotate(limit=45),
+    A.RandomRotate90(p=0.5),
     A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2),
+    A.Transpose(p=0.5),
     A.RandomResizedCrop(224, 224, scale=(0.8, 1.0)),
     ToTensorV2()  # loading image to tensor and normalization
 ])
