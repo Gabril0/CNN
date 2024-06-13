@@ -138,6 +138,9 @@ num_epochs = 20
 #training
 train_losses = []
 accuracies = []
+val_losses = []
+val_accuracies = []
+
 for epoch in range(num_epochs):
     model.train()
     running_loss = 0.0
@@ -168,41 +171,66 @@ for epoch in range(num_epochs):
     accuracies.append(epoch_accuracy)
 
     print(f"Epoch {epoch + 1} Loss: {epoch_loss:.4f}, Accuracy: {epoch_accuracy * 100:.2f}%")
-    if(show_images):
-        with torch.no_grad():
-            for images, masks in test_dataloader:
-                images, masks = images.to(device), masks.to(device)
 
-                # Check if mask has any non-zero values
-                if torch.any(masks > 0):
-                    outputs = model(images)
-                    probs = outputs
+    # Validation phase
+    model.eval()
+    val_running_loss = 0.0
+    val_correct_predictions = 0
+    val_total_samples = 0
 
-                    images_np = images.cpu().numpy()
-                    masks_np = masks.cpu().numpy()
-                    probs_np = probs.cpu().numpy()
+    with torch.no_grad():
+        for val_images, val_masks in test_dataloader:
+            val_images, val_masks = val_images.to(device), val_masks.to(device)
+            val_outputs = model(val_images)
 
-                    threshold = 0.5
-                    preds_np = (probs_np > threshold).astype(np.uint8)
-                    preds_np_squeezed = np.squeeze(preds_np, axis=1) 
+            val_loss = F.binary_cross_entropy(val_outputs, val_masks)
+            val_running_loss += val_loss.item()
 
-                    plt.figure(figsize=(16, 4))
+            val_binary_predictions = (val_outputs > 0.5).float()
+            val_correct_predictions += (val_binary_predictions == val_masks).sum().item()
+            val_total_samples += val_masks.numel()
 
-                    plt.subplot(1, 2, 1)
-                    plt.imshow(images_np[0].transpose((1, 2, 0)))
-                    plt.imshow(masks_np[0, 0], alpha=0.5, cmap='jet')
-                    plt.title("Original Image with Ground Truth Mask")
-                    plt.axis('off')
+    val_epoch_loss = val_running_loss / len(test_dataloader)
+    val_epoch_accuracy = val_correct_predictions / val_total_samples
 
-                    plt.subplot(1, 2, 2)
-                    plt.imshow(images_np[0].transpose((1, 2, 0)))
-                    plt.imshow(preds_np_squeezed[0], alpha=0.5, cmap='jet')
-                    plt.title("Original Image with Predicted Mask")
-                    plt.axis('off')
+    val_losses.append(val_epoch_loss)
+    val_accuracies.append(val_epoch_accuracy)
 
-                    plt.show()
+    print(f"Epoch {epoch + 1} Validation Loss: {val_epoch_loss:.4f}, Validation Accuracy: {val_epoch_accuracy * 100:.2f}%")
 
-                    break  # Stop after finding an image with non-zero mask
+# Plotting training and validation metrics
+plt.figure(figsize=(10, 10))
+
+plt.subplot(2, 2, 1)
+plt.plot(train_losses, label='Train Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Training Loss')
+plt.legend()
+
+plt.subplot(2, 2, 2)
+plt.plot(accuracies, label='Train Accuracy', color='green')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.title('Training Accuracy')
+plt.legend()
+
+plt.subplot(2, 2, 3)
+plt.plot(val_losses, label='Validation Loss', color='red')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Validation Loss')
+plt.legend()
+
+plt.subplot(2, 2, 4)
+plt.plot(val_accuracies, label='Validation Accuracy', color='purple')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.title('Validation Accuracy')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
 
 plt.figure(figsize=(10, 5))
 
