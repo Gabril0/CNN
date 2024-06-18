@@ -26,3 +26,6 @@ def append_paths(folder, img_path, mask_path):
                 print("Skipping non-PNG file:", os.path.join(folder, file))
     else:
         print("Error: {} could not be found".format(folder))
+
+def __init__(self):
+        pass
