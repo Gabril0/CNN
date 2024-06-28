@@ -83,35 +83,35 @@ class UNet(nn.Module):
         self.down4 = ConvBlock(512, 1024)
 
         #no attention implementation
-        # self.up5 = UpBlock(1024, 512)
-        # self.upconv5 = ConvBlock(1024, 512)
-
-        # self.up4 = UpBlock(512, 256)
-        # self.upconv4 = ConvBlock(512, 256)
-
-        # self.up3 = UpBlock(256, 128)
-        # self.upconv3 = ConvBlock(256, 128)
-
-        # self.up2 = UpBlock(128, 64)
-        # self.upconv2 = ConvBlock(128, 64)
-
-
-        #attention implementation
         self.up5 = UpBlock(1024, 512)
-        self.att5 = AttentionBlock(512, 512, 256)
-        self.upconv5 = ConvBlock(1024,512)
+        self.upconv5 = ConvBlock(1024, 512)
 
         self.up4 = UpBlock(512, 256)
-        self.att4 = AttentionBlock(256, 256, 128)
         self.upconv4 = ConvBlock(512, 256)
 
         self.up3 = UpBlock(256, 128)
-        self.att3 = AttentionBlock(128, 128, 64)
-        self.upconv3 = ConvBlock(256,128)
+        self.upconv3 = ConvBlock(256, 128)
 
         self.up2 = UpBlock(128, 64)
-        self.att2 = AttentionBlock(64, 64, 32)
-        self.upconv2 = ConvBlock(128,64)
+        self.upconv2 = ConvBlock(128, 64)
+
+
+        #attention implementation
+        # self.up5 = UpBlock(1024, 512)
+        # self.att5 = AttentionBlock(512, 512, 256)
+        # self.upconv5 = ConvBlock(1024,512)
+
+        # self.up4 = UpBlock(512, 256)
+        # self.att4 = AttentionBlock(256, 256, 128)
+        # self.upconv4 = ConvBlock(512, 256)
+
+        # self.up3 = UpBlock(256, 128)
+        # self.att3 = AttentionBlock(128, 128, 64)
+        # self.upconv3 = ConvBlock(256,128)
+
+        # self.up2 = UpBlock(128, 64)
+        # self.att2 = AttentionBlock(64, 64, 32)
+        # self.upconv2 = ConvBlock(128,64)
 
         self.out = ConvOut(64, out_channels)
 
@@ -131,42 +131,42 @@ class UNet(nn.Module):
         x5 = self.down4(x5)
 
         #no attention implementation
-        # u5 = self.up5(x5)
-        # u5 = torch.concat((x4, u5), dim=1)
-        # u5 = self.upconv5(u5)
-
-        # u4 = self.up4(u5)
-        # u4 = torch.concat((x3, u4), dim=1)
-        # u4 = self.upconv4(u4)
-
-        # u3 = self.up3(u4)
-        # u3 = torch.concat((x2, u3), dim=1)
-        # u3 = self.upconv3(u3)
-
-        # u2 = self.up2(u3)
-        # u2 = torch.concat((x1, u2), dim=1)
-        # u2 = self.upconv2(u2)
-
-        #attention mechanism implementation
         u5 = self.up5(x5)
-        x4 = self.att5(u5, x4)
         u5 = torch.concat((x4, u5), dim=1)
         u5 = self.upconv5(u5)
 
         u4 = self.up4(u5)
-        x3 = self.att4(g=u4, x=x3)
         u4 = torch.concat((x3, u4), dim=1)
         u4 = self.upconv4(u4)
 
         u3 = self.up3(u4)
-        x2 = self.att3(g=u3, x=x2)
         u3 = torch.concat((x2, u3), dim=1)
         u3 = self.upconv3(u3)
 
         u2 = self.up2(u3)
-        x1 = self.att2(g=u2, x=x1)
         u2 = torch.concat((x1, u2), dim=1)
         u2 = self.upconv2(u2)
+
+        #attention mechanism implementation
+        # u5 = self.up5(x5)
+        # x4 = self.att5(u5, x4)
+        # u5 = torch.concat((x4, u5), dim=1)
+        # u5 = self.upconv5(u5)
+
+        # u4 = self.up4(u5)
+        # x3 = self.att4(g=u4, x=x3)
+        # u4 = torch.concat((x3, u4), dim=1)
+        # u4 = self.upconv4(u4)
+
+        # u3 = self.up3(u4)
+        # x2 = self.att3(g=u3, x=x2)
+        # u3 = torch.concat((x2, u3), dim=1)
+        # u3 = self.upconv3(u3)
+
+        # u2 = self.up2(u3)
+        # x1 = self.att2(g=u2, x=x1)
+        # u2 = torch.concat((x1, u2), dim=1)
+        # u2 = self.upconv2(u2)
 
         u1 = self.out(u2)
         
