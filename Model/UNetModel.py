@@ -82,6 +82,7 @@ class UNet(nn.Module):
     def __init__(self, in_channels, out_channels, use_attention=False, attention_type='Basic_Attention', dropout_rate=0.1):
         super().__init__()
         self.use_attention = use_attention
+        self.attention_type = attention_type
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
 
         self.inc = ConvBlock(in_channels, 64, dropout_rate=dropout_rate)
@@ -103,19 +104,23 @@ class UNet(nn.Module):
         self.upconv2 = ConvBlock(128, 64, dropout_rate=dropout_rate)
 
         self.out = ConvOut(64, out_channels)
-
         if self.use_attention:
-            if attention_type == "Basic_Attention":
-                self.att5 = BasicAttentionBlock(512, 512, 256)
-                self.att4 = BasicAttentionBlock(256, 256, 128)
-                self.att3 = BasicAttentionBlock(128, 128, 64)
-                self.att2 = BasicAttentionBlock(64, 64, 32)
-                
-            if attention_type == "SE_Attention":
-                self.att5 = ChannelAttentions.SE_Block(512, 512, 256)
-                self.att4 = ChannelAttentions.SE_Block(256, 256, 128)
-                self.att3 = ChannelAttentions.SE_Block(128, 128, 64)
-                self.att2 = ChannelAttentions.SE_Block(64, 64, 32)
+            match self.attention_type:
+                case "Basic_Attention":
+                    self.att5 = BasicAttentionBlock(512, 512, 256)
+                    self.att4 = BasicAttentionBlock(256, 256, 128)
+                    self.att3 = BasicAttentionBlock(128, 128, 64)
+                    self.att2 = BasicAttentionBlock(64, 64, 32)
+                case "SE_Attention":
+                    self.att5 = ChannelAttentions.SE_Block(512, 512, 256)
+                    self.att4 = ChannelAttentions.SE_Block(256, 256, 128)
+                    self.att3 = ChannelAttentions.SE_Block(128, 128, 64)
+                    self.att2 = ChannelAttentions.SE_Block(64, 64, 32)
+                case "GSoP_Attention":
+                    self.att5 = ChannelAttentions.GSoP_Block(512, 512, 256)
+                    self.att4 = ChannelAttentions.GSoP_Block(256, 256, 128)
+                    self.att3 = ChannelAttentions.GSoP_Block(128, 128, 64)
+                    self.att2 = ChannelAttentions.GSoP_Block(64, 64, 32)
 
     def forward(self, x):
         x1 = self.inc(x)
