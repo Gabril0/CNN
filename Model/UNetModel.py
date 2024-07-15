@@ -81,6 +81,7 @@ class BasicAttentionBlock(nn.Module):
 class UNet(nn.Module):
     def __init__(self, in_channels, out_channels, use_attention=False, attention_type='Basic_Attention', dropout_rate=0.1):
         super().__init__()
+
         self.use_attention = use_attention
         self.attention_type = attention_type
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
@@ -121,6 +122,19 @@ class UNet(nn.Module):
                     self.att4 = ChannelAttentions.GSoP_Block(256, 256, 128)
                     self.att3 = ChannelAttentions.GSoP_Block(128, 128, 64)
                     self.att2 = ChannelAttentions.GSoP_Block(64, 64, 32)
+                case "SRM_Attention":
+                    self.att5 = ChannelAttentions.SRM_Block(512, 512, 256)
+                    self.att4 = ChannelAttentions.SRM_Block(256, 256, 128)
+                    self.att3 = ChannelAttentions.SRM_Block(128, 128, 64)
+                    self.att2 = ChannelAttentions.SRM_Block(64, 64, 32)
+        self.gradients = None
+        self.tensorhook = []
+        self.layerhook = []
+        self.selected_out = None
+        self.layerhook.append(self.upconv2.register_forward_hook(self.forward_hook()))
+        for p in self.parameters():
+            p.requires_grad = True
+
 
     def forward(self, x):
         x1 = self.inc(x)
@@ -171,4 +185,17 @@ class UNet(nn.Module):
             u2 = self.upconv2(u2)
 
         u1 = self.out(u2)
-        return u1
+        return u1, self.selected_out
+    
+    def activations_hook(self,grad):
+        self.gradients = grad
+
+    def get_act_grads(self):
+        return self.gradients
+
+    def forward_hook(self):
+        def hook(module, inp, out):
+            self.selected_out = out
+            self.tensorhook.append(out.register_hook(self.activations_hook))
+        return hook
+

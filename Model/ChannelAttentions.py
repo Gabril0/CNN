@@ -39,50 +39,49 @@ class SE_Block(nn.Module):
 
         return x * inter
 
-class GSoP_Block(nn.Module):
-    def __init__(self, input_g, input_x, intermediate_channels):
-        super(GSoP_Block, self).__init__()
+
+class SRM_Block(nn.Module):
+    def __init__(self, F_g, F_l, F_int):
+        super(SRM_Block, self).__init__()
         
-        self.conv_g1 = nn.Conv2d(input_g, intermediate_channels // 16, kernel_size=1)
-        self.cov_pool_g = CovariancePooling(intermediate_channels // 16)
-        self.row_conv_g = RowWiseConvolution(intermediate_channels // 16)
-        self.conv_g2 = nn.Conv2d(intermediate_channels // 16, intermediate_channels, kernel_size=1)
-
-        self.conv_x1 = nn.Conv2d(input_x, intermediate_channels // 16, kernel_size=1)
-        self.cov_pool_x = CovariancePooling(intermediate_channels // 16)
-        self.row_conv_x = RowWiseConvolution(intermediate_channels // 16)
-        self.conv_x2 = nn.Conv2d(intermediate_channels // 16, intermediate_channels, kernel_size=1)
-
-        self.fc_inter = nn.Sequential(
-            nn.Conv2d(intermediate_channels, intermediate_channels // 16, kernel_size=1),
+        # Global average pooling branch
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        
+        # Fully connected layer for merging branches
+        self.fc = nn.Sequential(
+            nn.Conv2d(F_g + F_l + F_g + F_l, F_int // 16, kernel_size=1),  # Adjusted input channels
             nn.ReLU(inplace=True),
-            nn.Conv2d(intermediate_channels // 16, input_x, kernel_size=1),
-            nn.Sigmoid()
+            nn.Conv2d(F_int // 16, F_l, kernel_size=1)
         )
+        
+        # Instance normalization
+        self.inorm = nn.InstanceNorm2d(F_l)
+        
+        # Sigmoid activation
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, g, x):
-        g1 = self.conv_g1(g)  # Conv2d
-        g1 = self.cov_pool_g(g1)  # Covariance pooling
-        g1 = self.row_conv_g(g1)  # Row-wise convolution
-        g1 = self.conv_g2(g1)  # Conv2d
-
-        x1 = self.conv_x1(x)  # Conv2d
-        x1 = self.cov_pool_x(x1)  # Covariance pooling
-        x1 = self.row_conv_x(x1)  # Row-wise convolution
-        x1 = self.conv_x2(x1)  # Conv2d
-
-        inter = g1 + x1
-        inter = self.fc_inter(inter) 
-        return x * inter  
-
-
-# class SRM_Block(nn.Module): 
-#     def __init__(self, F_g, F_l, F_int):
-#         super(SRM_Block, self).__init__()
-
-#     def forward(self, g, x):
+        # Global average pooling
+        avg_g = self.avg_pool(g)
+        avg_x = self.avg_pool(x)
         
-#         return x * psi
+        # Global standard deviation pooling (computed manually)
+        std_g = torch.std(g, dim=(2, 3), keepdim=True)
+        std_x = torch.std(x, dim=(2, 3), keepdim=True)
+        
+        # Concatenate the pooled features
+        concat = torch.cat([avg_g, std_g, avg_x, std_x], dim=1)
+        
+        # Fully connected layer
+        psi = self.fc(concat)
+        
+        # Instance normalization
+        psi = self.inorm(psi)
+        
+        # Sigmoid activation
+        psi = self.sigmoid(psi)
+        
+        return x * psi
     
 # class GCT_Block(nn.Module): 
 #     def __init__(self, F_g, F_l, F_int):
@@ -115,3 +114,41 @@ class GSoP_Block(nn.Module):
 #     def forward(self, g, x):
         
 #         return x * psi
+
+
+
+# class GSoP_Block(nn.Module):
+#     def __init__(self, input_g, input_x, intermediate_channels):
+#         super(GSoP_Block, self).__init__()
+        
+#         self.conv_g1 = nn.Conv2d(input_g, intermediate_channels // 16, kernel_size=1)
+#         self.cov_pool_g = CovariancePooling(intermediate_channels // 16)
+#         self.row_conv_g = RowWiseConvolution(intermediate_channels // 16)
+#         self.conv_g2 = nn.Conv2d(intermediate_channels // 16, intermediate_channels, kernel_size=1)
+
+#         self.conv_x1 = nn.Conv2d(input_x, intermediate_channels // 16, kernel_size=1)
+#         self.cov_pool_x = CovariancePooling(intermediate_channels // 16)
+#         self.row_conv_x = RowWiseConvolution(intermediate_channels // 16)
+#         self.conv_x2 = nn.Conv2d(intermediate_channels // 16, intermediate_channels, kernel_size=1)
+
+#         self.fc_inter = nn.Sequential(
+#             nn.Conv2d(intermediate_channels, intermediate_channels // 16, kernel_size=1),
+#             nn.ReLU(inplace=True),
+#             nn.Conv2d(intermediate_channels // 16, input_x, kernel_size=1),
+#             nn.Sigmoid()
+#         )
+
+#     def forward(self, g, x):
+#         g1 = self.conv_g1(g)  # Conv2d
+#         g1 = self.cov_pool_g(g1)  # Covariance pooling
+#         g1 = self.row_conv_g(g1)  # Row-wise convolution
+#         g1 = self.conv_g2(g1)  # Conv2d
+
+#         x1 = self.conv_x1(x)  # Conv2d
+#         x1 = self.cov_pool_x(x1)  # Covariance pooling
+#         x1 = self.row_conv_x(x1)  # Row-wise convolution
+#         x1 = self.conv_x2(x1)  # Conv2d
+
+#         inter = g1 + x1
+#         inter = self.fc_inter(inter) 
+#         return x * inter  
