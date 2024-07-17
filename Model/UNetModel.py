@@ -81,30 +81,31 @@ class BasicAttentionBlock(nn.Module):
 class UNet(nn.Module):
     def __init__(self, in_channels, out_channels, use_attention=False, attention_type='Basic_Attention', dropout_rate=0.1):
         super().__init__()
-
+        
         self.use_attention = use_attention
         self.attention_type = attention_type
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
-
+        
         self.inc = ConvBlock(in_channels, 64, dropout_rate=dropout_rate)
         self.down1 = ConvBlock(64, 128, dropout_rate=dropout_rate)
         self.down2 = ConvBlock(128, 256, dropout_rate=dropout_rate)
         self.down3 = ConvBlock(256, 512, dropout_rate=dropout_rate)
         self.down4 = ConvBlock(512, 1024, dropout_rate=dropout_rate)
-
+        
         self.up5 = UpBlock(1024, 512, dropout_rate=dropout_rate)
         self.upconv5 = ConvBlock(1024, 512, dropout_rate=dropout_rate)
-
+        
         self.up4 = UpBlock(512, 256, dropout_rate=dropout_rate)
         self.upconv4 = ConvBlock(512, 256, dropout_rate=dropout_rate)
-
+        
         self.up3 = UpBlock(256, 128, dropout_rate=dropout_rate)
         self.upconv3 = ConvBlock(256, 128, dropout_rate=dropout_rate)
-
+        
         self.up2 = UpBlock(128, 64, dropout_rate=dropout_rate)
         self.upconv2 = ConvBlock(128, 64, dropout_rate=dropout_rate)
-
+        
         self.out = ConvOut(64, out_channels)
+        
         if self.use_attention:
             match self.attention_type:
                 case "Basic_Attention":
@@ -127,15 +128,10 @@ class UNet(nn.Module):
                     self.att4 = ChannelAttentions.SRM_Block(256, 256, 128)
                     self.att3 = ChannelAttentions.SRM_Block(128, 128, 64)
                     self.att2 = ChannelAttentions.SRM_Block(64, 64, 32)
-        self.gradients = None
-        self.tensorhook = []
-        self.layerhook = []
-        self.selected_out = None
-        self.layerhook.append(self.upconv2.register_forward_hook(self.forward_hook()))
-        for p in self.parameters():
-            p.requires_grad = True
-
-
+        
+        self.grad_cam_target = self.upconv2.requires_grad_()
+    def set_grad_cam_target(self, target_layer):
+        self.grad_cam_target = target_layer
     def forward(self, x):
         x1 = self.inc(x)
         x2 = self.maxpool(x1)
@@ -146,23 +142,23 @@ class UNet(nn.Module):
         x4 = self.down3(x4)
         x5 = self.maxpool(x4)
         x5 = self.down4(x5)
-
+        
         if self.use_attention:
             u5 = self.up5(x5)
             x4 = self.att5(u5, x4)
             u5 = torch.cat((x4, u5), dim=1)
             u5 = self.upconv5(u5)
-
+            
             u4 = self.up4(u5)
             x3 = self.att4(u4, x3)
             u4 = torch.cat((x3, u4), dim=1)
             u4 = self.upconv4(u4)
-
+            
             u3 = self.up3(u4)
             x2 = self.att3(u3, x2)
             u3 = torch.cat((x2, u3), dim=1)
             u3 = self.upconv3(u3)
-
+            
             u2 = self.up2(u3)
             x1 = self.att2(u2, x1)
             u2 = torch.cat((x1, u2), dim=1)
@@ -171,31 +167,21 @@ class UNet(nn.Module):
             u5 = self.up5(x5)
             u5 = torch.cat((x4, u5), dim=1)
             u5 = self.upconv5(u5)
-
+            
             u4 = self.up4(u5)
             u4 = torch.cat((x3, u4), dim=1)
             u4 = self.upconv4(u4)
-
+            
             u3 = self.up3(u4)
             u3 = torch.cat((x2, u3), dim=1)
             u3 = self.upconv3(u3)
-
+            
             u2 = self.up2(u3)
             u2 = torch.cat((x1, u2), dim=1)
             u2 = self.upconv2(u2)
-
+        
         u1 = self.out(u2)
-        return u1, self.selected_out
+        return u1
+
     
-    def activations_hook(self,grad):
-        self.gradients = grad
-
-    def get_act_grads(self):
-        return self.gradients
-
-    def forward_hook(self):
-        def hook(module, inp, out):
-            self.selected_out = out
-            self.tensorhook.append(out.register_hook(self.activations_hook))
-        return hook
 
