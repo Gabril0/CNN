@@ -44,41 +44,31 @@ class SRM_Block(nn.Module):
     def __init__(self, F_g, F_l, F_int):
         super(SRM_Block, self).__init__()
         
-        # Global average pooling branch
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         
-        # Fully connected layer for merging branches
         self.fc = nn.Sequential(
-            nn.Conv2d(F_g + F_l + F_g + F_l, F_int // 16, kernel_size=1),  # Adjusted input channels
+            nn.Conv2d(F_g + F_l + F_g + F_l, F_int // 16, kernel_size=1),
             nn.ReLU(inplace=True),
             nn.Conv2d(F_int // 16, F_l, kernel_size=1)
         )
         
-        # Instance normalization
         self.inorm = nn.InstanceNorm2d(F_l)
         
-        # Sigmoid activation
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, g, x):
-        # Global average pooling
         avg_g = self.avg_pool(g)
         avg_x = self.avg_pool(x)
         
-        # Global standard deviation pooling (computed manually)
         std_g = torch.std(g, dim=(2, 3), keepdim=True)
         std_x = torch.std(x, dim=(2, 3), keepdim=True)
         
-        # Concatenate the pooled features
         concat = torch.cat([avg_g, std_g, avg_x, std_x], dim=1)
         
-        # Fully connected layer
         psi = self.fc(concat)
         
-        # Instance normalization
         psi = self.inorm(psi)
         
-        # Sigmoid activation
         psi = self.sigmoid(psi)
         
         return x * psi
