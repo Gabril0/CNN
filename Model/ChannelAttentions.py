@@ -3,75 +3,52 @@ import torch.nn as nn
 import torch.functional as F
 
 #what to pay attention to, selection process through channels
-class SE_Block(nn.Module):
-    def __init__(self, input_g, input_x, intermediate_channels):
-        super(SE_Block, self).__init__()
-        self.avg_pool_g = nn.AdaptiveAvgPool2d(1)
-        self.fc_g = nn.Sequential(
-            nn.Conv2d(input_g, intermediate_channels // 16, kernel_size=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(intermediate_channels // 16, intermediate_channels, kernel_size=1)
+class SRM_Block(nn.Module):
+    def __init__(self, inputs_g, inputs_x, inputs_inter):
+        super(SRM_Block, self).__init__()
+        
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+
+        self.W_g = nn.Sequential(
+            nn.Conv2d(inputs_g * 2, inputs_inter, kernel_size=1, stride=1, padding=0, bias=True),
+            nn.ConvTranspose2d(inputs_inter, inputs_inter, kernel_size=3, stride=2, padding=1, output_padding=1, bias=True),
+            nn.BatchNorm2d(inputs_inter)
         )
 
-        self.avg_pool_x = nn.AdaptiveAvgPool2d(1)
-        self.fc_x = nn.Sequential(
-            nn.Conv2d(input_x, intermediate_channels // 16, kernel_size=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(intermediate_channels // 16, intermediate_channels, kernel_size=1)
+        self.W_x = nn.Sequential(
+            nn.Conv2d(inputs_x * 2, inputs_inter, kernel_size=1, stride=1, padding=0, bias=True),
+            nn.ConvTranspose2d(inputs_inter, inputs_inter, kernel_size=3, stride=2, padding=1, output_padding=1, bias=True),
+            nn.BatchNorm2d(inputs_inter)
         )
 
-        self.fc_inter = nn.Sequential(
-            nn.Conv2d(intermediate_channels, intermediate_channels // 16, kernel_size=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(intermediate_channels // 16, input_x, kernel_size=1),
+        self.inter = nn.Sequential(
+            nn.Conv2d(inputs_inter, 1, kernel_size=1, stride=1, padding=0, bias=True),
+            nn.ConvTranspose2d(1, 1, kernel_size=3, stride=2, padding=1, output_padding=1, bias=True),
+            nn.BatchNorm2d(1),
             nn.Sigmoid()
         )
 
     def forward(self, g, x):
-        g1 = self.avg_pool_g(g)
-        g1 = self.fc_g(g1)
+        avg_pooled_g = self.avg_pool(g)
+        avg_pooled_x = self.avg_pool(x)
+        std_g = torch.std(g, dim=[2, 3], keepdim=True)
+        std_x = torch.std(x, dim=[2, 3], keepdim=True)
+        
+        combined_g = torch.cat((avg_pooled_g, std_g), dim=1)
+        combined_x = torch.cat((avg_pooled_x, std_x), dim=1)
+        
+        out_g = self.W_g(combined_g)
+        out_x = self.W_x(combined_x)
+        
+        combined = out_g + out_x
+        out = self.inter(combined)
+        
+        if out.size() != x.size():
+            out = nn.functional.interpolate(out, size=x.size()[2:])
+        
+        return out * x
 
-        x1 = self.avg_pool_x(x)
-        x1 = self.fc_x(x1)
 
-        inter = g1 + x1
-        inter = self.fc_inter(inter)
-
-        return x * inter
-
-
-class SRM_Block(nn.Module):
-    def __init__(self, F_g, F_l, F_int):
-        super(SRM_Block, self).__init__()
-        
-        self.avg_pool = nn.AdaptiveAvgPool2d(1)
-        
-        self.fc = nn.Sequential(
-            nn.Conv2d(F_g + F_l + F_g + F_l, F_int // 16, kernel_size=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(F_int // 16, F_l, kernel_size=1)
-        )
-        
-        self.inorm = nn.InstanceNorm2d(F_l)
-        
-        self.sigmoid = nn.Sigmoid()
-
-    def forward(self, g, x):
-        avg_g = self.avg_pool(g)
-        avg_x = self.avg_pool(x)
-        
-        std_g = torch.std(g, dim=(2, 3), keepdim=True)
-        std_x = torch.std(x, dim=(2, 3), keepdim=True)
-        
-        concat = torch.cat([avg_g, std_g, avg_x, std_x], dim=1)
-        
-        psi = self.fc(concat)
-        
-        psi = self.inorm(psi)
-        
-        psi = self.sigmoid(psi)
-        
-        return x * psi
     
 # class GCT_Block(nn.Module): 
 #     def __init__(self, F_g, F_l, F_int):
@@ -80,65 +57,7 @@ class SRM_Block(nn.Module):
 #     def forward(self, g, x):
         
 #         return x * psi
-    
-# class ECA_Block(nn.Module): 
-#     def __init__(self, F_g, F_l, F_int):
-#         super(ECA_Block, self).__init__()
-
-#     def forward(self, g, x):
-        
-#         return x * psi
-    
-# class FCA_Block(nn.Module): 
-#     def __init__(self, F_g, F_l, F_int):
-#         super(FCA_Block, self).__init__()
-
-#     def forward(self, g, x):
-        
-#         return x * psi
-    
-# class ENC_Block(nn.Module): 
-#     def __init__(self, F_g, F_l, F_int):
-#         super(ENC_Block, self).__init__()
-
-#     def forward(self, g, x):
-        
-#         return x * psi
 
 
 
-# class GSoP_Block(nn.Module):
-#     def __init__(self, input_g, input_x, intermediate_channels):
-#         super(GSoP_Block, self).__init__()
-        
-#         self.conv_g1 = nn.Conv2d(input_g, intermediate_channels // 16, kernel_size=1)
-#         self.cov_pool_g = CovariancePooling(intermediate_channels // 16)
-#         self.row_conv_g = RowWiseConvolution(intermediate_channels // 16)
-#         self.conv_g2 = nn.Conv2d(intermediate_channels // 16, intermediate_channels, kernel_size=1)
 
-#         self.conv_x1 = nn.Conv2d(input_x, intermediate_channels // 16, kernel_size=1)
-#         self.cov_pool_x = CovariancePooling(intermediate_channels // 16)
-#         self.row_conv_x = RowWiseConvolution(intermediate_channels // 16)
-#         self.conv_x2 = nn.Conv2d(intermediate_channels // 16, intermediate_channels, kernel_size=1)
-
-#         self.fc_inter = nn.Sequential(
-#             nn.Conv2d(intermediate_channels, intermediate_channels // 16, kernel_size=1),
-#             nn.ReLU(inplace=True),
-#             nn.Conv2d(intermediate_channels // 16, input_x, kernel_size=1),
-#             nn.Sigmoid()
-#         )
-
-#     def forward(self, g, x):
-#         g1 = self.conv_g1(g)  # Conv2d
-#         g1 = self.cov_pool_g(g1)  # Covariance pooling
-#         g1 = self.row_conv_g(g1)  # Row-wise convolution
-#         g1 = self.conv_g2(g1)  # Conv2d
-
-#         x1 = self.conv_x1(x)  # Conv2d
-#         x1 = self.cov_pool_x(x1)  # Covariance pooling
-#         x1 = self.row_conv_x(x1)  # Row-wise convolution
-#         x1 = self.conv_x2(x1)  # Conv2d
-
-#         inter = g1 + x1
-#         inter = self.fc_inter(inter) 
-#         return x * inter  
