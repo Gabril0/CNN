@@ -128,6 +128,11 @@ class UNet(nn.Module):
                     self.att4 = ChannelAttentions.SRM_Block(256, 256, 128)
                     self.att3 = ChannelAttentions.SRM_Block(128, 128, 64)
                     self.att2 = ChannelAttentions.SRM_Block(64, 64, 32)
+                case "GCT_Attention":
+                    self.att5 = ChannelAttentions.GCT_Block(512, 512, 256)
+                    self.att4 = ChannelAttentions.GCT_Block(256, 256, 128)
+                    self.att3 = ChannelAttentions.GCT_Block(128, 128, 64)
+                    self.att2 = ChannelAttentions.GCT_Block(64, 64, 32)
         
         self.grad_cam_target = self.upconv2.requires_grad_()
     def set_grad_cam_target(self, target_layer):

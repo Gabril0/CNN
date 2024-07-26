@@ -50,13 +50,43 @@ class SRM_Block(nn.Module):
 
 
     
-# class GCT_Block(nn.Module): 
-#     def __init__(self, F_g, F_l, F_int):
-#         super(GCT_Block, self).__init__()
+class GCT_Block(nn.Module):
+    def __init__(self, F_g, F_l, F_int):
+        super(GCT_Block, self).__init__()
+        self.alpha_l = nn.Parameter(torch.ones((1, F_l, 1, 1)))
+        self.gamma_l = nn.Parameter(torch.zeros((1, F_l, 1, 1)))
+        self.beta_l = nn.Parameter(torch.zeros((1, F_l, 1, 1)))
 
-#     def forward(self, g, x):
-        
-#         return x * psi
+        self.alpha_g = nn.Parameter(torch.ones((1, F_g, 1, 1)))
+        self.gamma_g = nn.Parameter(torch.zeros((1, F_g, 1, 1)))
+        self.beta_g = nn.Parameter(torch.zeros((1, F_g, 1, 1)))
+
+        self.alpha_int = nn.Parameter(torch.ones((1, F_int * 2, 1, 1)))
+        self.gamma_int = nn.Parameter(torch.zeros((1, F_int * 2, 1, 1)))
+        self.beta_int = nn.Parameter(torch.zeros((1, F_int * 2, 1, 1)))
+
+        self.epsilon = 1e-9
+
+    def forward(self, g, x):
+        #x gate
+        embedding_x = (x.pow(2).sum(2, keepdims=True).sum(3, keepdims=True) + self.epsilon).pow(0.5) * self.alpha_l
+        norm_x = (embedding_x.pow(2).mean(dim=1, keepdims=True) + self.epsilon).pow(0.5) * self.gamma_l
+        gate_x = 1. + torch.tanh(embedding_x * norm_x + self.beta_l)
+
+        #g gate
+        embedding_g = (g.pow(2).sum(2, keepdims=True).sum(3, keepdims=True) + self.epsilon).pow(0.5) * self.alpha_g
+        norm_g = (embedding_g.pow(2).mean(dim=1, keepdims=True) + self.epsilon).pow(0.5) * self.gamma_g
+        gate_g = 1. + torch.tanh(embedding_g * norm_g + self.beta_g)
+
+        #inter gate
+        embedding_inter = (x.pow(2).sum(2, keepdims=True).sum(3, keepdims=True) + self.epsilon).pow(0.5) * self.alpha_int
+        norm_inter = (embedding_inter.pow(2).mean(dim=1, keepdims=True) + self.epsilon).pow(0.5) * self.gamma_int
+        gate_inter = 1. + torch.tanh(embedding_inter * norm_inter + self.beta_int)
+
+        combined_gates = gate_g + gate_inter + gate_x
+
+        return x * combined_gates
+
 
 
 
