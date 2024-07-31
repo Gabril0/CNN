@@ -113,16 +113,6 @@ class UNet(nn.Module):
                     self.att4 = BasicAttentionBlock(256, 256, 128)
                     self.att3 = BasicAttentionBlock(128, 128, 64)
                     self.att2 = BasicAttentionBlock(64, 64, 32)
-                case "SE_Attention":
-                    self.att5 = ChannelAttentions.SE_Block(512, 512, 256)
-                    self.att4 = ChannelAttentions.SE_Block(256, 256, 128)
-                    self.att3 = ChannelAttentions.SE_Block(128, 128, 64)
-                    self.att2 = ChannelAttentions.SE_Block(64, 64, 32)
-                case "GSoP_Attention":
-                    self.att5 = ChannelAttentions.GSoP_Block(512, 512, 256)
-                    self.att4 = ChannelAttentions.GSoP_Block(256, 256, 128)
-                    self.att3 = ChannelAttentions.GSoP_Block(128, 128, 64)
-                    self.att2 = ChannelAttentions.GSoP_Block(64, 64, 32)
                 case "SRM_Attention":
                     self.att5 = ChannelAttentions.SRM_Block(512, 512, 256)
                     self.att4 = ChannelAttentions.SRM_Block(256, 256, 128)
