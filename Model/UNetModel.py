@@ -9,11 +9,11 @@ class ConvBlock(nn.Module):
         if temp_channels is None:
             temp_channels = out_channels
         self.conv = nn.Sequential(
-            nn.Conv2d(in_channels, temp_channels, kernel_size=3, padding=1, bias=False),
+            nn.Conv2d(in_channels, temp_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(temp_channels),
             nn.ReLU(inplace=True),
             nn.Dropout(dropout_rate),
-            nn.Conv2d(temp_channels, out_channels, kernel_size=3, padding=1, bias=False),
+            nn.Conv2d(temp_channels, out_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
@@ -27,7 +27,7 @@ class UpBlock(nn.Module):
         super().__init__()
         self.up = nn.Sequential(
             nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
-            nn.Conv2d(ch_in, ch_out, kernel_size=3, stride=1, padding=1, bias=False),
+            nn.Conv2d(ch_in, ch_out, kernel_size=3, stride=1, padding=1, bias=True),
             nn.BatchNorm2d(ch_out),
             nn.ReLU(inplace=True),
             nn.Dropout(dropout_rate)
@@ -53,17 +53,17 @@ class BasicAttentionBlock(nn.Module):
     def __init__(self, inputs_g, inputs_x, inputs_inter):
         super(BasicAttentionBlock, self).__init__()
         self.W_g = nn.Sequential( #gating signal with intermediate inputs, higher level features
-            nn.Conv2d(inputs_g, inputs_inter, kernel_size=1, stride=1, padding=0, bias=False),
+            nn.Conv2d(inputs_g, inputs_inter, kernel_size=1, stride=1, padding=0, bias=True),
             nn.BatchNorm2d(inputs_inter)
         )
 
         self.W_x = nn.Sequential( #input channel with intermediate inputs, local feature
-            nn.Conv2d(inputs_x, inputs_inter, kernel_size=1, stride=1, padding=0, bias=False),
+            nn.Conv2d(inputs_x, inputs_inter, kernel_size=1, stride=1, padding=0, bias=True),
             nn.BatchNorm2d(inputs_inter)
         )
 
         self.inter = nn.Sequential(
-            nn.Conv2d(inputs_inter, 1, kernel_size=1, stride=1, padding=0, bias=False),
+            nn.Conv2d(inputs_inter, 1, kernel_size=1, stride=1, padding=0, bias=True),
             nn.BatchNorm2d(1),
             nn.Sigmoid()
         )
@@ -177,6 +177,3 @@ class UNet(nn.Module):
         
         u1 = self.out(u2)
         return u1
-
-    
-
