@@ -14,6 +14,7 @@ class CustomImageDataset(Dataset):
         self.train_img_files = os.listdir(train_img_dir)
         self.mask_img_files = os.listdir(mask_img_dir)
         self.transform = transform
+        self.images_path = [os.path.join(train_img_dir, file) for file in self.train_img_files]
 
     def __len__(self):
         return min(len(self.train_img_files), len(self.mask_img_files))
