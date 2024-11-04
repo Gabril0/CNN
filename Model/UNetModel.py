@@ -108,7 +108,7 @@ class UNet(nn.Module):
         
         if self.use_attention:
             match self.attention_type:
-                case "Basic_Attention":
+                case "Attention_Gate": # Old "Basic_Attention"
                     self.att5 = BasicAttentionBlock(512, 512, 256)
                     self.att4 = BasicAttentionBlock(256, 256, 128)
                     self.att3 = BasicAttentionBlock(128, 128, 64)
