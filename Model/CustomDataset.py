@@ -40,6 +40,7 @@ class CustomImageDataset(Dataset):
         if not isinstance(thresholded_mask, np.ndarray):
             thresholded_mask = np.array(thresholded_mask)
 
-        thresholded_mask_tensor = torch.from_numpy(thresholded_mask).unsqueeze(0) 
+        thresholded_mask_tensor = torch.from_numpy(thresholded_mask).unsqueeze(0)
 
-        return train_img, thresholded_mask_tensor
+        return train_img, thresholded_mask_tensor, self.train_img_files[idx]
+
