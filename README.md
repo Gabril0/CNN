@@ -116,8 +116,10 @@ After that, the model segments an image from <b>Test DataLoader</b> and asks for
 
 At the end, the model compares the True Positives, False Negatives and False Positives from the segmentation, as shown below:
 
+<p align="center">
+  <img src = "https://github.com/user-attachments/assets/ef8d273e-d771-4035-974f-33643865221e" width = 256>
+</p>
 
-![image](https://github.com/user-attachments/assets/7ddd1a3a-f65c-48f6-a030-6cd8b1344860)
 
 
 
