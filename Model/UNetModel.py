@@ -79,7 +79,8 @@ class BasicAttentionBlock(nn.Module):
 
 
 class UNet(nn.Module):
-    def __init__(self, in_channels, out_channels, use_attention=False, attention_type='Basic_Attention', dropout_rate=0.1):
+    def __init__(self, in_channels, out_channels, use_attention=False, attention_type='Basic_Attention', 
+                 dropout_rate=0.1, att_1 = True, att_2 = True, att_3 = True, att_4 = True):
         super().__init__()
         
         self.use_attention = use_attention
@@ -125,6 +126,11 @@ class UNet(nn.Module):
                     self.att2 = ChannelAttentions.GCT_Block(64, 64, 32)
         
         self.grad_cam_target = self.upconv2.requires_grad_()
+
+        self.att_1 = att_1
+        self.att_2 = att_2
+        self.att_3 = att_3
+        self.att_4 = att_4
     def set_grad_cam_target(self, target_layer):
         self.grad_cam_target = target_layer
     def forward(self, x):
@@ -140,22 +146,26 @@ class UNet(nn.Module):
         
         if self.use_attention:
             u5 = self.up5(x5)
-            x4 = self.att5(u5, x4)
+            if self.att_4:
+                x4 = self.att5(u5, x4)
             u5 = torch.cat((x4, u5), dim=1)
             u5 = self.upconv5(u5)
             
             u4 = self.up4(u5)
-            x3 = self.att4(u4, x3)
+            if self.att_3:
+                x3 = self.att4(u4, x3)
             u4 = torch.cat((x3, u4), dim=1)
             u4 = self.upconv4(u4)
             
             u3 = self.up3(u4)
-            x2 = self.att3(u3, x2)
+            if self.att_2:
+                x2 = self.att3(u3, x2)
             u3 = torch.cat((x2, u3), dim=1)
             u3 = self.upconv3(u3)
             
             u2 = self.up2(u3)
-            x1 = self.att2(u2, x1)
+            if self.att_1:
+                x1 = self.att2(u2, x1)
             u2 = torch.cat((x1, u2), dim=1)
             u2 = self.upconv2(u2)
         else:
