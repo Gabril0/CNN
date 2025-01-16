@@ -104,7 +104,7 @@ Here are some results from 2 different databases, **OralEpithelium** and **H&E**
 ![image](https://github.com/user-attachments/assets/340f10a4-6ee6-4bcb-8aed-94a047e1b03e)
 The model also displays some metrics for accuracy and loss:
 <p align="center">
-  <img src = "https://github.com/user-attachments/assets/a119b786-177a-401f-b13d-8cb1fb8f4244" width = 500>
+  <img src = "https://github.com/user-attachments/assets/b74a21f5-1c2a-4711-8ab7-083f1b2d1bce" width = 500>
   <br>
   <em> Metrics for Attention Gate in 50 Epochs with 8 batch size, OralEpithelium database, 256px by 256px images and 0.001 Learning Rate .</em>
 </p>
