@@ -79,12 +79,16 @@ class BasicAttentionBlock(nn.Module):
 
 
 class UNet(nn.Module):
-    def __init__(self, in_channels, out_channels, use_attention=False, attention_type='Basic_Attention', 
-                 dropout_rate=0.1, att_1 = True, att_2 = True, att_3 = True, att_4 = True):
+    def __init__(self, in_channels, out_channels, use_attention=False, 
+                 dropout_rate=0.1, att_1="Attention_Gate", att_2="Attention_Gate", att_3="Attention_Gate", att_4="Attention_Gate"):
         super().__init__()
         
         self.use_attention = use_attention
-        self.attention_type = attention_type
+        self.att_1 = att_1
+        self.att_2 = att_2
+        self.att_3 = att_3
+        self.att_4 = att_4
+
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
         
         self.inc = ConvBlock(in_channels, 64, dropout_rate=dropout_rate)
@@ -107,30 +111,26 @@ class UNet(nn.Module):
         
         self.out = ConvOut(64, out_channels)
         
-        if self.use_attention:
-            match self.attention_type:
-                case "Attention_Gate": # Old "Basic_Attention"
-                    self.att5 = BasicAttentionBlock(512, 512, 256)
-                    self.att4 = BasicAttentionBlock(256, 256, 128)
-                    self.att3 = BasicAttentionBlock(128, 128, 64)
-                    self.att2 = BasicAttentionBlock(64, 64, 32)
-                case "SRM_Attention":
-                    self.att5 = ChannelAttentions.SRM_Block(512, 512, 256)
-                    self.att4 = ChannelAttentions.SRM_Block(256, 256, 128)
-                    self.att3 = ChannelAttentions.SRM_Block(128, 128, 64)
-                    self.att2 = ChannelAttentions.SRM_Block(64, 64, 32)
-                case "GCT_Attention":
-                    self.att5 = ChannelAttentions.GCT_Block(512, 512, 256)
-                    self.att4 = ChannelAttentions.GCT_Block(256, 256, 128)
-                    self.att3 = ChannelAttentions.GCT_Block(128, 128, 64)
-                    self.att2 = ChannelAttentions.GCT_Block(64, 64, 32)
-        
-        self.grad_cam_target = self.upconv2.requires_grad_()
+        if self.att_1 != "None":
+            self.att5 = self._get_attention_block(att_1, 512, 512, 256)
+        if self.att_2 != "None":
+            self.att4 = self._get_attention_block(att_2, 256, 256, 128)
+        if self.att_3 != "None":
+            self.att3 = self._get_attention_block(att_3, 128, 128, 64)
+        if self.att_4 != "None":
+            self.att2 = self._get_attention_block(att_4, 64, 64, 32)
 
-        self.att_1 = att_1
-        self.att_2 = att_2
-        self.att_3 = att_3
-        self.att_4 = att_4
+    def _get_attention_block(self, att_type, in_channels, inter_channels, out_channels):
+        match att_type:
+            case "Attention_Gate":
+                return BasicAttentionBlock(in_channels, inter_channels, out_channels)
+            case "SRM_Attention":
+                return ChannelAttentions.SRM_Block(in_channels, inter_channels, out_channels)
+            case "GCT_Attention":
+                return ChannelAttentions.GCT_Block(in_channels, inter_channels, out_channels)
+            case _:
+                raise ValueError(f"Unknown attention type: {att_type}")
+
     def set_grad_cam_target(self, target_layer):
         self.grad_cam_target = target_layer
     def forward(self, x):
@@ -146,25 +146,25 @@ class UNet(nn.Module):
         
         if self.use_attention:
             u5 = self.up5(x5)
-            if self.att_4:
+            if self.att_1 != "None":
                 x4 = self.att5(u5, x4)
             u5 = torch.cat((x4, u5), dim=1)
             u5 = self.upconv5(u5)
             
             u4 = self.up4(u5)
-            if self.att_3:
+            if self.att_2 != "None":
                 x3 = self.att4(u4, x3)
             u4 = torch.cat((x3, u4), dim=1)
             u4 = self.upconv4(u4)
             
             u3 = self.up3(u4)
-            if self.att_2:
+            if self.att_3 != "None":
                 x2 = self.att3(u3, x2)
             u3 = torch.cat((x2, u3), dim=1)
             u3 = self.upconv3(u3)
             
             u2 = self.up2(u3)
-            if self.att_1:
+            if self.att_4 != "None":
                 x1 = self.att2(u2, x1)
             u2 = torch.cat((x1, u2), dim=1)
             u2 = self.upconv2(u2)
