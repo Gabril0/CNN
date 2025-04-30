@@ -1,6 +1,7 @@
 import os
 from PIL import Image
 import torch
+from scipy.io import loadmat
 import cv2
 import numpy as np
 from torchvision import transforms as v2
@@ -27,8 +28,18 @@ class CustomImageDataset(Dataset):
         train_img = cv2.cvtColor(train_img, cv2.COLOR_BGR2RGB)
 
         mask_image = cv2.imread(mask_img_path, cv2.IMREAD_GRAYSCALE)
-        _, thresholded_mask = cv2.threshold(mask_image, 127, 255, cv2.THRESH_BINARY)
 
+        if mask_image is None and mask_img_path.endswith('.mat'):
+            mat_data = loadmat(mask_img_path)
+            mask_image = mat_data.get('inst_map')
+
+            if mask_image is None:
+                raise ValueError(f"Could not find 'inst_map' in {mask_img_path}")
+            
+            if mask_image.dtype != np.uint8:
+                mask_image = (mask_image * 255).astype(np.uint8)
+
+        _, thresholded_mask = cv2.threshold(mask_image, 127, 255, cv2.THRESH_BINARY)
         if self.transform:
             augmented = self.transform(image=train_img, mask=thresholded_mask)
             train_img = augmented['image']
